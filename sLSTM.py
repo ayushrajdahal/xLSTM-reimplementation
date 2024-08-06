@@ -38,6 +38,9 @@ class sLSTMBlock(nn.Module):
     def __init__(self, config: sLSTMConfig):
         super().__init__()
 
+        # Dropout layer
+        self.dropout = nn.Dropout(config.dropout) if config.dropout > 0 else nn.Identity()
+
         # Input weight vectors between inputs xt and cell input, input gate, forget gate, and output gate, respectively.
         self.Wzx = nn.Linear(config.input_size, config.hidden_size)
         self.Wix = nn.Linear(config.input_size, config.hidden_size)
@@ -51,6 +54,9 @@ class sLSTMBlock(nn.Module):
         self.Roh = nn.Linear(config.hidden_size, config.hidden_size)
     
     def forward(self, x, h_prev, c_prev, n_prev, m_prev):
+
+        x = self.dropout(x) # Apply dropout to the input
+
         z = torch.tanh(self.Wzx(x) + self.Rzh(h_prev))      # Cell input
         i = torch.exp(self.Wix(x) + self.Rih(h_prev))       # Input gate (MODIFIED)
         f = torch.exp(self.Wfx(x) + self.Rfh(h_prev))       # Forget gate (MODIFIED): can be exp OR sigmoid
