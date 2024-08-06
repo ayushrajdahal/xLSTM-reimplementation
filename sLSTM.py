@@ -67,16 +67,23 @@ class sLSTMBlock(nn.Module):
         # Exponential activation functions can lead to large values that cause overflows. Therefore, we stabilize gates with an additional state m_t (Milakov & Gimelshein, 2018).
         # We show in Appendix A.2, that replacing ft by ft_hat and it by it_hat in the forward pass does neither change the output of the whole network nor the derivatives of the loss wrt the parameters.
         
-        m = torch.max(torch.log(f) + m_prev, torch.log(i)) # Stabilizer state (NEW)
+        # Stabilizer state (NEW)
+        m = torch.max(torch.log(f) + m_prev, torch.log(i))
 
-        i_hat = torch.exp(torch.log(i) - m)                 # Stabilized input gate (NEW)
-        f_hat = torch.exp(torch.log(f) + m_prev - m)        # Stabilized forget gate (NEW)
+        # Stabilized input gate (NEW)
+        i_hat = torch.exp(torch.log(i) - m)
 
-        # f and i are replaced with their stabilized equivalents below:
-        c = f_hat * c_prev + i_hat * z  # New cell state (MODIFIED)
-        n = f_hat * n_prev + i_hat      # Normalizer state (NEW + MODIFIED)
+        # Stabilized forget gate (NEW)
+        f_hat = torch.exp(torch.log(f) + m_prev - m)
 
-        h = o * c / n           # New hidden state
+        # New cell state (MODIFIED)
+        c = f_hat * c_prev + i_hat * z
+
+        # Normalizer state (NEW + MODIFIED)
+        n = f_hat * n_prev + i_hat
+
+        # New hidden state
+        h = o * c / n
 
         return h, c, n, m
 
