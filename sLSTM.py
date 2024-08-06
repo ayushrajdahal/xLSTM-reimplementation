@@ -54,8 +54,8 @@ class sLSTMBlock(nn.Module):
         self.Roh = nn.Linear(config.hidden_size, config.hidden_size)
     
     def forward(self, x, h_prev, c_prev, n_prev, m_prev):
-
-        x = self.dropout(x) # Apply dropout to the input
+        if self.training:
+            x = self.dropout(x) # Apply dropout to the input during training
 
         z = torch.tanh(self.Wzx(x) + self.Rzh(h_prev))      # Cell input
         i = torch.exp(self.Wix(x) + self.Rih(h_prev))       # Input gate (MODIFIED)

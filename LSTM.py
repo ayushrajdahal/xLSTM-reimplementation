@@ -47,7 +47,8 @@ class LSTMBlock(nn.Module):
     
     def forward(self, x, h_prev, c_prev):
 
-        x = self.dropout(x) # Apply dropout to the input
+        if self.training:
+            x = self.dropout(x) # Apply dropout to the input during training
 
         z = torch.tanh(self.Wzx(x) + self.Rzh(h_prev)) # Cell input
         i = torch.sigmoid(self.Wix(x) + self.Rih(h_prev)) # Input gate
