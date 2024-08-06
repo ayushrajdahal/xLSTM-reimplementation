@@ -26,6 +26,7 @@ class sLSTMConfig:
     """
     input_size: int
     hidden_size: int
+    output_size: int
     num_layers: int
     dropout: float = 0.0
     bidirectional: bool = False
@@ -81,7 +82,7 @@ class sLSTM(nn.Module):
         super().__init__()
         self.config = config
         self.lstm_block = sLSTMBlock(config)
-        self.output_layer = nn.Linear(config.hidden_size, 1)
+        self.output_layer = nn.Linear(config.hidden_size, config.output_size)
 
     def forward(self, input_seq):
         batch_size, seq_len, _ = input_seq.size()
