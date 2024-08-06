@@ -69,21 +69,24 @@ class LSTM(nn.Module):
     def __init__(self, config: LSTMConfig):
         super().__init__()
         self.config = config
-        self.lstm_block = LSTMBlock(config)
+        self.lstm_blocks = nn.ModuleList([LSTMBlock(config) for _ in range(config.num_layers)])
         self.output_layer = nn.Linear(config.hidden_size, config.output_size)
 
     def forward(self, input_seq):
         batch_size, seq_len, _ = input_seq.size()
         
         # Initialization
-        h = torch.zeros(batch_size, self.config.hidden_size).to(device) # Hidden state
-        c = torch.zeros(batch_size, self.config.hidden_size).to(device) # Cell state
+        h = [torch.zeros(batch_size, self.config.hidden_size).to(device) for _ in range(self.config.num_layers)] # Hidden state
+        c = [torch.zeros(batch_size, self.config.hidden_size).to(device) for _ in range(self.config.num_layers)] # Cell state
 
         # Loop through the sequence
         for t in range(seq_len):
-            h, c = self.lstm_block(input_seq[:, t, :], h, c)
+            x = input_seq[:, t, :]
+            for layer in range(self.config.num_layers):
+                h[layer], c[layer] = self.lstm_block(x, h[layer], c[layer])
+                x = h[layer]
 
-        # Output layer
-        output = self.output_layer(h)
+        # Output layer (final hidden state)
+        output = self.output_layer(h[-1])
         
         return output

@@ -94,23 +94,26 @@ class sLSTM(nn.Module):
     def __init__(self, config: sLSTMConfig):
         super().__init__()
         self.config = config
-        self.lstm_block = sLSTMBlock(config)
+        self.lstm_blocks = nn.ModuleList([sLSTMBlock(config) for _ in range(config.num_layers)])
         self.output_layer = nn.Linear(config.hidden_size, config.output_size)
 
     def forward(self, input_seq):
         batch_size, seq_len, _ = input_seq.size()
         
         # Initialization
-        h = torch.zeros(batch_size, self.config.hidden_size).to(device) # Hidden state
-        c = torch.zeros(batch_size, self.config.hidden_size).to(device) # Cell state
-        n = torch.ones(batch_size).to(device) # Normalizer state
-        m = torch.zeros(batch_size).to(device) # Stabilizer state
+        h = [torch.zeros(batch_size, self.config.hidden_size).to(device) for _ in range(self.config.num_layers)] # Hidden state
+        c = [torch.zeros(batch_size, self.config.hidden_size).to(device) for _ in range(self.config.num_layers)] # Cell state
+        n = [torch.ones(batch_size).to(device) for _ in range(self.config.num_layers)] # Normalizer state
+        m = [torch.zeros(batch_size).to(device) for _ in range(self.config.num_layers)] # Stabilizer state
 
         # Loop through the sequence
         for t in range(seq_len):
-            h, c, n, m = self.lstm_block(input_seq[:, t, :], h, c, n, m)
+            x = input_seq[:, t, :]
+            for layer in range(self.config.num_layers):
+                h[layer], c[layer], n[layer], m[layer] = self.lstm_blocks[layer](x, h[layer], c[layer], n[layer], m[layer])
+                x = h[layer] # Output of the current layer is the input to the next
 
-        # Output layer
-        output = self.output_layer(h)
+        # Output layer (final hidden state)
+        output = self.output_layer(h[-1])
         
         return output
