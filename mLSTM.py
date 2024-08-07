@@ -3,9 +3,6 @@ import torch
 import torch.nn as nn
 from dataclasses import dataclass
 
-# Device configuration
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 @dataclass
 class mLSTMConfig:
     """
