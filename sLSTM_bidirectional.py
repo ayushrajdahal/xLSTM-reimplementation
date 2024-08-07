@@ -1,10 +1,14 @@
+"""
+This module implements the BidirectionalSLSTM network, which extends the sLSTM network by adding bidirectional functionality.
+"""
+
 import torch
 import torch.nn as nn
 from sLSTM import sLSTMBlock, sLSTMConfig
 
-class sLSTM(nn.Module):
+class BidirectionalSLSTM(nn.Module):
     """
-    The main sLSTM network along with bidirectional functionality.
+    Bidirectional sLSTM network.
     """
     def __init__(self, config: sLSTMConfig):
         super().__init__()
@@ -17,7 +21,7 @@ class sLSTM(nn.Module):
         self.output_layer = nn.Linear(config.hidden_size, config.output_size)
 
     def forward(self, input_seq):
-        
+
         device = input_seq.device
 
         batch_size, seq_len, _ = input_seq.size()
